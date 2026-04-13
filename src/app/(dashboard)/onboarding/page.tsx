@@ -12,7 +12,6 @@ import {
   Radio,
 } from "@heroui/react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
 
 const STEPS = ["Welcome", "About You", "Preferences"];
 
@@ -26,31 +25,11 @@ export default function OnboardingPage() {
     theme: "system",
   });
   const router = useRouter();
-  const supabase = createClient();
 
   async function handleComplete() {
     setIsLoading(true);
-
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) return;
-
-    await supabase
-      .from("profiles")
-      .update({ full_name: formData.fullName } as Record<string, unknown>)
-      .eq("id", user.id);
-
-    await supabase
-      .from("user_preferences")
-      .update({
-        theme: formData.theme,
-        onboarding_completed: true,
-      } as Record<string, unknown>)
-      .eq("user_id", user.id);
-
+    // No backend — just redirect
     router.push("/dashboard");
-    router.refresh();
   }
 
   return (

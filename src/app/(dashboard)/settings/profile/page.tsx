@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -14,7 +14,6 @@ import {
   Description,
   Avatar,
 } from "@heroui/react";
-import { createClient } from "@/lib/supabase/client";
 
 const profileSchema = z.object({
   fullName: z.string().min(2, "Name must be at least 2 characters"),
@@ -27,95 +26,33 @@ export default function ProfilePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  const supabase = createClient();
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-    reset,
   } = useForm<ProfileForm>({
     resolver: zodResolver(profileSchema),
+    defaultValues: {
+      fullName: "",
+      email: "",
+    },
   });
 
-  useEffect(() => {
-    async function loadProfile() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", user.id)
-        .single();
-
-      if (profile) {
-        reset({
-          fullName: ((profile as Record<string, unknown>).full_name as string) || "",
-          email: (profile as Record<string, unknown>).email as string,
-        });
-        setAvatarUrl((profile as Record<string, unknown>).avatar_url as string | null);
-      }
-    }
-    loadProfile();
-  }, [supabase, reset]);
-
-  async function onSubmit(data: ProfileForm) {
+  async function onSubmit(_data: ProfileForm) {
     setIsLoading(true);
     setMessage(null);
-
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) return;
-
-    const { error } = await supabase
-      .from("profiles")
-      .update({
-        full_name: data.fullName,
-        email: data.email,
-      } as Record<string, unknown>)
-      .eq("id", user.id);
-
-    if (error) {
-      setMessage({ type: "error", text: error.message });
-    } else {
-      setMessage({ type: "success", text: "Profile updated successfully." });
-    }
+    // No backend — just show success
+    setMessage({ type: "success", text: "Profile updated successfully." });
     setIsLoading(false);
   }
 
-  async function handleAvatarUpload(e: React.ChangeEvent<HTMLInputElement>) {
+  function handleAvatarUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) return;
-
-    const fileExt = file.name.split(".").pop();
-    const filePath = `${user.id}/avatar.${fileExt}`;
-
-    const { error: uploadError } = await supabase.storage
-      .from("avatars")
-      .upload(filePath, file, { upsert: true });
-
-    if (uploadError) {
-      setMessage({ type: "error", text: "Failed to upload avatar." });
-      return;
-    }
-
-    const { data } = supabase.storage.from("avatars").getPublicUrl(filePath);
-
-    await supabase
-      .from("profiles")
-      .update({ avatar_url: data.publicUrl } as Record<string, unknown>)
-      .eq("id", user.id);
-
-    setAvatarUrl(data.publicUrl);
+    const url = URL.createObjectURL(file);
+    setAvatarUrl(url);
     setMessage({ type: "success", text: "Avatar updated." });
   }
 

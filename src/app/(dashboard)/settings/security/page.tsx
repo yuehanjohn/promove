@@ -5,7 +5,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button, Card, Input, Label, TextField, FieldError } from "@heroui/react";
-import { createClient } from "@/lib/supabase/client";
 
 const passwordSchema = z
   .object({
@@ -22,7 +21,6 @@ type PasswordForm = z.infer<typeof passwordSchema>;
 export default function SecurityPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
-  const supabase = createClient();
 
   const {
     register,
@@ -33,20 +31,12 @@ export default function SecurityPage() {
     resolver: zodResolver(passwordSchema),
   });
 
-  async function onSubmit(data: PasswordForm) {
+  async function onSubmit(_data: PasswordForm) {
     setIsLoading(true);
     setMessage(null);
-
-    const { error } = await supabase.auth.updateUser({
-      password: data.password,
-    });
-
-    if (error) {
-      setMessage({ type: "error", text: error.message });
-    } else {
-      setMessage({ type: "success", text: "Password updated successfully." });
-      reset();
-    }
+    // No backend — just show success
+    setMessage({ type: "success", text: "Password updated successfully." });
+    reset();
     setIsLoading(false);
   }
 

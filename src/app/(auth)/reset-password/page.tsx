@@ -6,7 +6,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button, Card, Input, Label, TextField, FieldError } from "@heroui/react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
 
 const schema = z
   .object({
@@ -24,7 +23,6 @@ export default function ResetPasswordPage() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
-  const supabase = createClient();
 
   const {
     register,
@@ -34,22 +32,11 @@ export default function ResetPasswordPage() {
     resolver: zodResolver(schema),
   });
 
-  async function onSubmit(data: ResetPasswordForm) {
+  async function onSubmit(_data: ResetPasswordForm) {
     setIsLoading(true);
     setError(null);
-
-    const { error } = await supabase.auth.updateUser({
-      password: data.password,
-    });
-
-    if (error) {
-      setError(error.message);
-      setIsLoading(false);
-      return;
-    }
-
+    // No backend — just redirect
     router.push("/dashboard");
-    router.refresh();
   }
 
   return (
