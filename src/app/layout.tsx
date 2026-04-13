@@ -15,10 +15,12 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "SaaS Template",
-    template: "%s | SaaS Template",
+    default: "ProMove - Volleyball Movement Tracker",
+    template: "%s | ProMove",
   },
-  description: "Production-ready SaaS boilerplate with Next.js, Supabase, and Stripe",
+  description:
+    "Track and analyze your volleyball explosive movements. Record vertical jumps, approach jumps, block jumps and more.",
+  viewport: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no",
 };
 
 export default function RootLayout({
