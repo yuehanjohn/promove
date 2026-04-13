@@ -1,6 +1,6 @@
 "use client";
 
-import { useMovementStore } from "@/stores/movement-store";
+import { useMovementStore, useHydrated } from "@/stores/movement-store";
 import { MOVEMENT_TYPES } from "@/lib/movement-types";
 import { calcStats, detectJump } from "@/lib/jump-calculator";
 import { useRouter, useParams } from "next/navigation";
@@ -18,7 +18,7 @@ export default function SessionDetailPage() {
   const deleteMeasurement = useMovementStore((s) => s.deleteMeasurement);
   const updateSessionNotes = useMovementStore((s) => s.updateSessionNotes);
 
-  const hasHydrated = useMovementStore((s) => s._hasHydrated);
+  const hasHydrated = useHydrated();
   const session = getSession(params.id as string);
   const [notes, setNotes] = useState(session?.notes ?? "");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);

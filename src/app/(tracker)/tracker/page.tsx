@@ -1,6 +1,6 @@
 "use client";
 
-import { useMovementStore } from "@/stores/movement-store";
+import { useMovementStore, useHydrated } from "@/stores/movement-store";
 import { MOVEMENT_TYPES } from "@/lib/movement-types";
 import type { MovementType } from "@/lib/movement-types";
 import { calcStats } from "@/lib/jump-calculator";
@@ -8,7 +8,7 @@ import Link from "next/link";
 import { ProgressChart } from "@/components/tracker/charts/ProgressChart";
 
 export default function TrackerDashboard() {
-  const hasHydrated = useMovementStore((s) => s._hasHydrated);
+  const hasHydrated = useHydrated();
   const sessions = useMovementStore((s) => s.sessions);
   const getTotalJumps = useMovementStore((s) => s.getTotalJumps);
   const getAllPersonalBests = useMovementStore((s) => s.getAllPersonalBests);

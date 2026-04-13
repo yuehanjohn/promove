@@ -1,14 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { useMovementStore } from "@/stores/movement-store";
+import { useMovementStore, useHydrated } from "@/stores/movement-store";
 import { MOVEMENT_TYPES } from "@/lib/movement-types";
 import type { MovementType } from "@/lib/movement-types";
 import { calcStats } from "@/lib/jump-calculator";
 import Link from "next/link";
 
 export default function HistoryPage() {
-  const hasHydrated = useMovementStore((s) => s._hasHydrated);
+  const hasHydrated = useHydrated();
   const sessions = useMovementStore((s) => s.sessions);
   const [filter, setFilter] = useState<MovementType | "all">("all");
 
