@@ -101,7 +101,14 @@ function RecordPageContent() {
     }, 5000);
   }, [processSensorData]);
 
-  const handleStartCountdown = useCallback(async () => {
+  const handleStartRecording = useCallback(async () => {
+    if (inputMethod === "manual") {
+      // Skip countdown for manual entry — go straight to input
+      setPhase("result");
+      return;
+    }
+
+    // Sensor mode: run countdown then record
     resumeAudioContext();
     setPhase("countdown");
 
@@ -109,21 +116,15 @@ function RecordPageContent() {
       setCountdownValue(secondsLeft);
     }, 3);
 
-    // After countdown, start recording
-    if (inputMethod === "sensor") {
-      setPhase("recording");
-      startSensorRecording();
-    } else {
-      setPhase("result");
-    }
+    setPhase("recording");
+    startSensorRecording();
   }, [inputMethod, startSensorRecording]);
 
-  const handleSaveJump = useCallback(() => {
+  const createMeasurement = useCallback((): Measurement | null => {
     const value = inputMethod === "manual" ? Number(manualValue) : (currentResult?.value ?? 0);
+    if (value <= 0) return null;
 
-    if (value <= 0) return;
-
-    const measurement: Measurement = {
+    return {
       id: generateId(),
       value,
       timestamp: Date.now(),
@@ -133,12 +134,35 @@ function RecordPageContent() {
       sensorData: currentResult?.sensorData,
       metrics: currentResult?.metrics,
     };
+  }, [inputMethod, manualValue, currentResult]);
+
+  const handleSaveJump = useCallback(() => {
+    const measurement = createMeasurement();
+    if (!measurement) return;
 
     setSessionMeasurements((prev) => [...prev, measurement]);
     setManualValue("");
     setCurrentResult(null);
     setPhase("setup");
-  }, [inputMethod, manualValue, currentResult]);
+  }, [createMeasurement]);
+
+  const handleSaveAndFinish = useCallback(() => {
+    const measurement = createMeasurement();
+    if (!measurement) return;
+
+    const allMeasurements = [...sessionMeasurements, measurement];
+
+    const session: Session = {
+      id: generateId(),
+      movementType,
+      createdAt: Date.now(),
+      measurements: allMeasurements,
+      notes: "",
+    };
+
+    addSession(session);
+    router.push(`/tracker/session/${session.id}`);
+  }, [createMeasurement, sessionMeasurements, movementType, addSession, router]);
 
   const handleFinishSession = useCallback(() => {
     if (sessionMeasurements.length === 0) {
@@ -216,20 +240,39 @@ function RecordPageContent() {
           <div className="mb-4">
             <label className="mb-2 block text-sm font-medium text-default-600">Movement Type</label>
             <div className="grid grid-cols-3 gap-2">
-              {Object.values(MOVEMENT_TYPES).map((type) => (
-                <button
-                  key={type.id}
-                  onClick={() => setMovementType(type.id)}
-                  className={`flex flex-col items-center gap-1 rounded-xl border-2 p-3 text-center transition-colors ${
-                    movementType === type.id
-                      ? "border-primary bg-primary/10"
-                      : "border-default-200 bg-default-50 active:bg-default-100"
-                  }`}
-                >
-                  <span className="text-xl">{type.icon}</span>
-                  <span className="text-xs font-medium">{type.shortLabel}</span>
-                </button>
-              ))}
+              {Object.values(MOVEMENT_TYPES).map((type) => {
+                const isSelected = movementType === type.id;
+                return (
+                  <button
+                    key={type.id}
+                    onClick={() => setMovementType(type.id)}
+                    className={`flex flex-col items-center gap-1 rounded-xl border-2 p-3 text-center transition-all duration-150 ${
+                      isSelected
+                        ? "border-primary bg-primary/10 shadow-md shadow-primary/20 scale-[1.02]"
+                        : "border-default-200 bg-default-50 active:bg-default-100 active:scale-[0.97]"
+                    }`}
+                  >
+                    <span
+                      className={`text-xl transition-transform duration-150 ${isSelected ? "scale-125" : ""}`}
+                    >
+                      {type.icon}
+                    </span>
+                    <span className={`text-xs font-medium ${isSelected ? "text-primary" : ""}`}>
+                      {type.shortLabel}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+            {/* Selected type description */}
+            <div className="mt-2 rounded-lg bg-default-100 px-3 py-2">
+              <p className="text-xs text-default-500">
+                <span className="font-medium text-default-700">
+                  {MOVEMENT_TYPES[movementType].label}
+                </span>
+                {" — "}
+                {MOVEMENT_TYPES[movementType].description}
+              </p>
             </div>
           </div>
 
@@ -263,30 +306,23 @@ function RecordPageContent() {
             </div>
           </div>
 
-          {/* Start Button */}
-          <div className="mt-auto pb-4">
-            <button
-              onClick={handleStartCountdown}
-              className="w-full rounded-2xl bg-primary py-4 text-lg font-bold text-primary-foreground shadow-lg transition-transform active:scale-[0.98]"
-            >
-              {inputMethod === "sensor" ? "Start Countdown" : "Record Jump"}
-            </button>
-          </div>
-
           {/* Previous jumps in this session */}
           {sessionMeasurements.length > 0 && (
-            <div className="mb-4">
+            <div className="mb-4 rounded-xl border border-default-200 bg-default-50 p-3">
               <div className="mb-2 flex items-center justify-between">
-                <h3 className="text-sm font-medium text-default-600">This session</h3>
+                <h3 className="text-sm font-medium text-default-600">
+                  This session ({sessionMeasurements.length} jump
+                  {sessionMeasurements.length !== 1 ? "s" : ""})
+                </h3>
                 <button onClick={handleFinishSession} className="text-sm font-medium text-primary">
                   Finish Session
                 </button>
               </div>
-              <div className="flex gap-2 overflow-x-auto">
+              <div className="flex gap-2 overflow-x-auto pb-1">
                 {sessionMeasurements.map((m, i) => (
                   <div
                     key={m.id}
-                    className="flex-shrink-0 rounded-lg border border-default-200 bg-default-50 px-3 py-2 text-center"
+                    className="flex-shrink-0 rounded-lg border border-default-200 bg-white px-3 py-2 text-center dark:bg-default-100"
                   >
                     <p className="text-xs text-default-400">#{i + 1}</p>
                     <p className="font-bold">{m.value}</p>
@@ -296,6 +332,16 @@ function RecordPageContent() {
               </div>
             </div>
           )}
+
+          {/* Start Button */}
+          <div className="mt-auto pb-4">
+            <button
+              onClick={handleStartRecording}
+              className="w-full rounded-2xl bg-primary py-4 text-lg font-bold text-primary-foreground shadow-lg transition-transform active:scale-[0.98]"
+            >
+              {inputMethod === "sensor" ? "Start Countdown" : "Enter Measurement"}
+            </button>
+          </div>
         </div>
       )}
 
@@ -404,10 +450,7 @@ function RecordPageContent() {
               Save & Record Another
             </button>
             <button
-              onClick={() => {
-                handleSaveJump();
-                setTimeout(handleFinishSession, 100);
-              }}
+              onClick={handleSaveAndFinish}
               disabled={
                 inputMethod === "manual" ? !manualValue || Number(manualValue) <= 0 : !currentResult
               }
