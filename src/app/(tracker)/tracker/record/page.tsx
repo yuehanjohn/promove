@@ -35,7 +35,9 @@ function RecordPageContent() {
   );
   const [phase, setPhase] = useState<RecordingPhase>("setup");
   const [countdownValue, setCountdownValue] = useState(3);
-  const [inputMethod, setInputMethod] = useState<"sensor" | "manual">("manual");
+  const [inputMethod, setInputMethod] = useState<"sensor" | "manual">(
+    typeof window !== "undefined" && "DeviceMotionEvent" in window ? "sensor" : "manual"
+  );
   const [manualValue, setManualValue] = useState("");
   const [currentResult, setCurrentResult] = useState<{
     value: number;
@@ -47,6 +49,7 @@ function RecordPageContent() {
   const [sessionMeasurements, setSessionMeasurements] = useState<Measurement[]>([]);
   const sensorAvailable = typeof window !== "undefined" && "DeviceMotionEvent" in window;
   const [isRecording, setIsRecording] = useState(false);
+  const [sensorFailed, setSensorFailed] = useState(false);
 
   const sensorDataRef = useRef<SensorReading[]>([]);
   const recordingStartRef = useRef<number>(0);
@@ -65,11 +68,11 @@ function RecordPageContent() {
         metrics,
         sensorData: [...data],
       });
+      setSensorFailed(false);
       playCompleteBeep();
     } else {
-      // Couldn't detect jump, fallback to manual
       setCurrentResult(null);
-      setInputMethod("manual");
+      setSensorFailed(true);
     }
     setPhase("result");
   }, []);
@@ -143,6 +146,7 @@ function RecordPageContent() {
     setSessionMeasurements((prev) => [...prev, measurement]);
     setManualValue("");
     setCurrentResult(null);
+    setSensorFailed(false);
     setPhase("setup");
   }, [createMeasurement]);
 
@@ -381,7 +385,57 @@ function RecordPageContent() {
       {phase === "result" && (
         <div className="flex flex-1 flex-col">
           <div className="flex flex-1 flex-col items-center justify-center">
-            {inputMethod === "sensor" && currentResult ? (
+            {inputMethod === "sensor" && sensorFailed ? (
+              <div className="w-full max-w-xs text-center">
+                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-warning/10">
+                  <svg
+                    width="32"
+                    height="32"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    className="text-warning"
+                  >
+                    <path d="M12 9v4m0 4h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                  </svg>
+                </div>
+                <p className="mb-2 text-lg font-semibold">No Jump Detected</p>
+                <p className="mb-6 text-sm text-default-400">
+                  The sensor didn&apos;t pick up a jump. Make sure your phone is in your hand or
+                  pocket and try jumping higher.
+                </p>
+                <button
+                  onClick={() => {
+                    setSensorFailed(false);
+                    setCurrentResult(null);
+                    handleStartRecording();
+                  }}
+                  className="w-full rounded-2xl bg-primary py-4 text-lg font-bold text-primary-foreground shadow-lg transition-transform active:scale-[0.98]"
+                >
+                  Try Again
+                </button>
+                <button
+                  onClick={() => {
+                    setSensorFailed(false);
+                    setInputMethod("manual");
+                  }}
+                  className="mt-2 w-full py-3 text-sm text-default-500"
+                >
+                  Enter Manually Instead
+                </button>
+                <button
+                  onClick={() => {
+                    setSensorFailed(false);
+                    setCurrentResult(null);
+                    setPhase("setup");
+                  }}
+                  className="w-full py-3 text-sm text-default-500"
+                >
+                  Back
+                </button>
+              </div>
+            ) : inputMethod === "sensor" && currentResult ? (
               <div className="text-center">
                 <p className="text-sm text-default-500">Estimated Height</p>
                 <p className="text-6xl font-black">{currentResult.value}</p>
@@ -439,36 +493,43 @@ function RecordPageContent() {
             )}
           </div>
 
-          <div className="space-y-2 pb-4">
-            <button
-              onClick={handleSaveJump}
-              disabled={
-                inputMethod === "manual" ? !manualValue || Number(manualValue) <= 0 : !currentResult
-              }
-              className="w-full rounded-2xl bg-primary py-4 text-lg font-bold text-primary-foreground shadow-lg transition-transform active:scale-[0.98] disabled:opacity-50"
-            >
-              Save & Record Another
-            </button>
-            <button
-              onClick={handleSaveAndFinish}
-              disabled={
-                inputMethod === "manual" ? !manualValue || Number(manualValue) <= 0 : !currentResult
-              }
-              className="w-full rounded-2xl border-2 border-default-300 py-4 text-lg font-medium transition-transform active:scale-[0.98] disabled:opacity-50"
-            >
-              Save & Finish
-            </button>
-            <button
-              onClick={() => {
-                setManualValue("");
-                setCurrentResult(null);
-                setPhase("setup");
-              }}
-              className="w-full py-3 text-sm text-default-500"
-            >
-              Discard
-            </button>
-          </div>
+          {/* Only show save buttons when there's an actual result (sensor success or manual entry) */}
+          {!(inputMethod === "sensor" && sensorFailed) && (
+            <div className="space-y-2 pb-4">
+              <button
+                onClick={handleSaveJump}
+                disabled={
+                  inputMethod === "manual"
+                    ? !manualValue || Number(manualValue) <= 0
+                    : !currentResult
+                }
+                className="w-full rounded-2xl bg-primary py-4 text-lg font-bold text-primary-foreground shadow-lg transition-transform active:scale-[0.98] disabled:opacity-50"
+              >
+                Save & Record Another
+              </button>
+              <button
+                onClick={handleSaveAndFinish}
+                disabled={
+                  inputMethod === "manual"
+                    ? !manualValue || Number(manualValue) <= 0
+                    : !currentResult
+                }
+                className="w-full rounded-2xl border-2 border-default-300 py-4 text-lg font-medium transition-transform active:scale-[0.98] disabled:opacity-50"
+              >
+                Save & Finish
+              </button>
+              <button
+                onClick={() => {
+                  setManualValue("");
+                  setCurrentResult(null);
+                  setPhase("setup");
+                }}
+                className="w-full py-3 text-sm text-default-500"
+              >
+                Discard
+              </button>
+            </div>
+          )}
         </div>
       )}
 
