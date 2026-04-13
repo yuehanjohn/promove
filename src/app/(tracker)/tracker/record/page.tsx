@@ -6,7 +6,8 @@ import { useMovementStore, generateId } from "@/stores/movement-store";
 import { MOVEMENT_TYPES } from "@/lib/movement-types";
 import type { MovementType, SensorReading, Measurement, Session } from "@/lib/movement-types";
 import { runCountdown, playCompleteBeep, resumeAudioContext } from "@/lib/audio";
-import { detectJump, heightFromFlightTime } from "@/lib/jump-calculator";
+import { detectJump, heightFromFlightTime, computeJumpMetrics } from "@/lib/jump-calculator";
+import type { JumpMetrics } from "@/lib/movement-types";
 
 type RecordingPhase = "setup" | "countdown" | "recording" | "result" | "session-summary";
 
@@ -26,6 +27,8 @@ export default function RecordPage() {
     value: number;
     flightTimeMs?: number;
     peakAcceleration?: number;
+    metrics?: JumpMetrics;
+    sensorData?: SensorReading[];
   } | null>(null);
   const [sessionMeasurements, setSessionMeasurements] = useState<Measurement[]>([]);
   const sensorAvailable = typeof window !== "undefined" && "DeviceMotionEvent" in window;
@@ -40,10 +43,13 @@ export default function RecordPage() {
 
     if (result) {
       const height = heightFromFlightTime(result.flightTimeMs);
+      const metrics = computeJumpMetrics(data, result);
       setCurrentResult({
         value: height,
         flightTimeMs: result.flightTimeMs,
         peakAcceleration: result.peakAcceleration,
+        metrics,
+        sensorData: [...data],
       });
       playCompleteBeep();
     } else {
@@ -110,6 +116,8 @@ export default function RecordPage() {
       method: inputMethod,
       flightTimeMs: currentResult?.flightTimeMs,
       peakAcceleration: currentResult?.peakAcceleration,
+      sensorData: currentResult?.sensorData,
+      metrics: currentResult?.metrics,
     };
 
     setSessionMeasurements((prev) => [...prev, measurement]);
@@ -318,10 +326,25 @@ export default function RecordPage() {
                 <p className="text-sm text-default-500">Estimated Height</p>
                 <p className="text-6xl font-black">{currentResult.value}</p>
                 <p className="text-xl text-default-500">cm</p>
-                {currentResult.flightTimeMs && (
-                  <p className="mt-2 text-sm text-default-400">
-                    Flight time: {Math.round(currentResult.flightTimeMs)}ms
-                  </p>
+                {currentResult.metrics && (
+                  <div className="mt-4 grid grid-cols-2 gap-2 text-left">
+                    <div className="rounded-lg bg-default-100 p-2">
+                      <p className="text-[10px] text-default-400">Flight Time</p>
+                      <p className="text-sm font-bold">{Math.round(currentResult.metrics.flightTimeMs)}ms</p>
+                    </div>
+                    <div className="rounded-lg bg-default-100 p-2">
+                      <p className="text-[10px] text-default-400">Takeoff Velocity</p>
+                      <p className="text-sm font-bold">{currentResult.metrics.takeoffVelocity} m/s</p>
+                    </div>
+                    <div className="rounded-lg bg-default-100 p-2">
+                      <p className="text-[10px] text-default-400">Peak G-Force</p>
+                      <p className="text-sm font-bold">{currentResult.metrics.peakAcceleration} m/s²</p>
+                    </div>
+                    <div className="rounded-lg bg-default-100 p-2">
+                      <p className="text-[10px] text-default-400">Direction</p>
+                      <p className="text-sm font-bold capitalize">{currentResult.metrics.jumpDirection}</p>
+                    </div>
+                  </div>
                 )}
               </div>
             ) : (

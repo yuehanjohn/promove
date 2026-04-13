@@ -5,6 +5,7 @@ import { MOVEMENT_TYPES } from "@/lib/movement-types";
 import type { MovementType } from "@/lib/movement-types";
 import { calcStats } from "@/lib/jump-calculator";
 import Link from "next/link";
+import { ProgressChart } from "@/components/tracker/charts/ProgressChart";
 
 export default function TrackerDashboard() {
   const sessions = useMovementStore((s) => s.sessions);
@@ -21,6 +22,30 @@ export default function TrackerDashboard() {
   const allValues = sessions.flatMap((s) => s.measurements.map((m) => m.value));
   const overallStats = calcStats(allValues);
 
+  // Compute velocity and flight metrics across all sessions
+  const allMetricMeasurements = sessions.flatMap((s) =>
+    s.measurements.filter((m) => m.metrics)
+  );
+  const avgVelocity =
+    allMetricMeasurements.length > 0
+      ? Math.round(
+          (allMetricMeasurements.reduce(
+            (a, m) => a + (m.metrics?.takeoffVelocity ?? 0),
+            0
+          ) /
+            allMetricMeasurements.length) *
+            100
+        ) / 100
+      : null;
+  const bestFlight =
+    allMetricMeasurements.length > 0
+      ? Math.round(
+          Math.max(
+            ...allMetricMeasurements.map((m) => m.metrics?.flightTimeMs ?? 0)
+          )
+        )
+      : null;
+
   return (
     <div className="mx-auto max-w-lg px-4 pt-6">
       {/* Header */}
@@ -30,15 +55,43 @@ export default function TrackerDashboard() {
       </div>
 
       {/* Quick Stats */}
-      <div className="mb-6 grid grid-cols-3 gap-3">
+      <div className="mb-3 grid grid-cols-3 gap-3">
         <StatCard label="Sessions" value={totalSessions} />
         <StatCard label="Total Jumps" value={totalJumps} />
         <StatCard
           label="Best Jump"
-          value={overallStats.max > 0 ? `${overallStats.max}` : "—"}
+          value={overallStats.max > 0 ? `${overallStats.max}` : "\u2014"}
           suffix={overallStats.max > 0 ? "cm" : ""}
         />
       </div>
+
+      {/* Extended stats row */}
+      {(avgVelocity !== null || overallStats.avg > 0) && (
+        <div className="mb-6 grid grid-cols-3 gap-3">
+          <StatCard
+            label="Avg Height"
+            value={overallStats.avg > 0 ? `${overallStats.avg}` : "\u2014"}
+            suffix={overallStats.avg > 0 ? "cm" : ""}
+          />
+          <StatCard
+            label="Avg Velocity"
+            value={avgVelocity !== null ? `${avgVelocity}` : "\u2014"}
+            suffix={avgVelocity !== null ? "m/s" : ""}
+          />
+          <StatCard
+            label="Best Flight"
+            value={bestFlight !== null ? `${bestFlight}` : "\u2014"}
+            suffix={bestFlight !== null ? "ms" : ""}
+          />
+        </div>
+      )}
+
+      {/* Progress Chart */}
+      {sessions.length >= 2 && (
+        <section className="mb-6">
+          <ProgressChart sessions={sessions} />
+        </section>
+      )}
 
       {/* Quick Record Button */}
       <Link

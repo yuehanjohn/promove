@@ -73,6 +73,20 @@ export interface SensorReading {
   az: number;
 }
 
+/** Comprehensive metrics computed from sensor data */
+export interface JumpMetrics {
+  flightTimeMs: number;
+  peakAcceleration: number; // max g-force magnitude during jump
+  takeoffVelocity: number; // m/s estimated velocity at takeoff
+  landingImpact: number; // peak g-force on landing
+  riseTimeMs: number; // time from takeoff to peak height
+  fallTimeMs: number; // time from peak height to landing
+  horizontalMovement: number; // estimated lateral displacement in m/s²
+  jumpDirection: "neutral" | "forward" | "backward" | "left" | "right";
+  loadingForce: number; // peak g-force during counter-movement (loading phase)
+  explosiveness: number; // ratio of takeoff velocity to loading duration (m/s per second)
+}
+
 export interface Measurement {
   id: string;
   value: number; // height in cm (or distance for broad jump)
@@ -81,6 +95,7 @@ export interface Measurement {
   flightTimeMs?: number;
   peakAcceleration?: number;
   sensorData?: SensorReading[];
+  metrics?: JumpMetrics;
 }
 
 export interface Session {
