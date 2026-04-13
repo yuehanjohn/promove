@@ -7,6 +7,7 @@ const navItems = [
   { href: "/tracker", label: "Home", icon: HomeIcon },
   { href: "/tracker/record", label: "Record", icon: RecordIcon },
   { href: "/tracker/history", label: "History", icon: HistoryIcon },
+  { href: "/tracker/analytics", label: "Analytics", icon: AnalyticsIcon },
 ];
 
 export function BottomNav() {
@@ -86,6 +87,25 @@ function HistoryIcon({ active }: { active: boolean }) {
     >
       <path d="M12 8v4l3 3" />
       <circle cx="12" cy="12" r="10" />
+    </svg>
+  );
+}
+
+function AnalyticsIcon({ active }: { active: boolean }) {
+  return (
+    <svg
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={active ? 2.5 : 2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M18 20V10" />
+      <path d="M12 20V4" />
+      <path d="M6 20v-6" />
     </svg>
   );
 }
