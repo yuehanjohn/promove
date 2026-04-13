@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import Stripe from "stripe";
-import { stripe } from "@/lib/stripe/client";
+import { getStripe } from "@/lib/stripe/client";
 import { getPlanByPriceId } from "@/lib/stripe/plans";
 import { createClient } from "@supabase/supabase-js";
 
@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
   let event: Stripe.Event;
 
   try {
-    event = stripe.webhooks.constructEvent(body, signature, process.env.STRIPE_WEBHOOK_SECRET!);
+    event = getStripe().webhooks.constructEvent(body, signature, process.env.STRIPE_WEBHOOK_SECRET!);
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
     console.error("Webhook signature verification failed:", message);
@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
         const userId = session.metadata?.supabase_user_id;
         if (!userId || !session.subscription) break;
 
-        const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
+        const subscription = await getStripe().subscriptions.retrieve(session.subscription as string);
         const priceId = subscription.items.data[0]?.price.id;
         const plan = getPlanByPriceId(priceId) ?? "pro";
 
