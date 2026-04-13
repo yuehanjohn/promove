@@ -7,7 +7,6 @@ import { z } from "zod";
 import { Button, Card, Input, Label, TextField, FieldError, Separator } from "@heroui/react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -30,7 +29,6 @@ function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get("redirectTo") || "/dashboard";
-  const supabase = createClient();
 
   const {
     register,
@@ -40,33 +38,11 @@ function LoginContent() {
     resolver: zodResolver(loginSchema),
   });
 
-  async function onSubmit(data: LoginForm) {
+  async function onSubmit(_data: LoginForm) {
     setIsLoading(true);
     setError(null);
-
-    const { error } = await supabase.auth.signInWithPassword({
-      email: data.email,
-      password: data.password,
-    });
-
-    if (error) {
-      setError(error.message);
-      setIsLoading(false);
-      return;
-    }
-
+    // No backend — just redirect
     router.push(redirectTo);
-    router.refresh();
-  }
-
-  async function handleOAuth(provider: "google" | "github") {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider,
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback?redirectTo=${redirectTo}`,
-      },
-    });
-    if (error) setError(error.message);
   }
 
   return (
@@ -79,10 +55,10 @@ function LoginContent() {
       </Card.Header>
       <Card.Content className="flex flex-col gap-4">
         <div className="flex gap-2">
-          <Button variant="outline" className="flex-1" onPress={() => handleOAuth("google")}>
+          <Button variant="outline" className="flex-1">
             Google
           </Button>
-          <Button variant="outline" className="flex-1" onPress={() => handleOAuth("github")}>
+          <Button variant="outline" className="flex-1">
             GitHub
           </Button>
         </div>

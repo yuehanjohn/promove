@@ -2,16 +2,12 @@
 
 import { Button, Avatar, Dropdown } from "@heroui/react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
 
 export function DashboardHeader() {
   const router = useRouter();
-  const supabase = createClient();
 
-  async function handleSignOut() {
-    await supabase.auth.signOut();
+  function handleSignOut() {
     router.push("/login");
-    router.refresh();
   }
 
   return (

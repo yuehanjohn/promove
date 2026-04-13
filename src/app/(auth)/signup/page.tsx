@@ -6,7 +6,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button, Card, Input, Label, TextField, FieldError, Separator } from "@heroui/react";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/client";
 
 const signupSchema = z
   .object({
@@ -26,7 +25,6 @@ export default function SignupPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const supabase = createClient();
 
   const {
     register,
@@ -36,37 +34,12 @@ export default function SignupPage() {
     resolver: zodResolver(signupSchema),
   });
 
-  async function onSubmit(data: SignupForm) {
+  async function onSubmit(_data: SignupForm) {
     setIsLoading(true);
     setError(null);
-
-    const { error } = await supabase.auth.signUp({
-      email: data.email,
-      password: data.password,
-      options: {
-        data: { full_name: data.fullName },
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
-
-    if (error) {
-      setError(error.message);
-      setIsLoading(false);
-      return;
-    }
-
+    // No backend — just show success
     setSuccess(true);
     setIsLoading(false);
-  }
-
-  async function handleOAuth(provider: "google" | "github") {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider,
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
-    if (error) setError(error.message);
   }
 
   if (success) {
@@ -93,10 +66,10 @@ export default function SignupPage() {
       </Card.Header>
       <Card.Content className="flex flex-col gap-4">
         <div className="flex gap-2">
-          <Button variant="outline" className="flex-1" onPress={() => handleOAuth("google")}>
+          <Button variant="outline" className="flex-1">
             Google
           </Button>
-          <Button variant="outline" className="flex-1" onPress={() => handleOAuth("github")}>
+          <Button variant="outline" className="flex-1">
             GitHub
           </Button>
         </div>

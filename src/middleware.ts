@@ -1,13 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-export async function middleware(request: NextRequest) {
-  // Skip Supabase session management if env vars are not configured
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-    return NextResponse.next();
-  }
-
-  const { updateSession } = await import("@/lib/supabase/middleware");
-  return await updateSession(request);
+export async function middleware(_request: NextRequest) {
+  return NextResponse.next();
 }
 
 export const config = {

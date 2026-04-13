@@ -6,7 +6,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button, Card, Input, Label, TextField, FieldError } from "@heroui/react";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/client";
 
 const schema = z.object({
   email: z.string().email("Invalid email address"),
@@ -15,10 +14,8 @@ const schema = z.object({
 type ForgotPasswordForm = z.infer<typeof schema>;
 
 export default function ForgotPasswordPage() {
-  const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const supabase = createClient();
 
   const {
     register,
@@ -28,20 +25,9 @@ export default function ForgotPasswordPage() {
     resolver: zodResolver(schema),
   });
 
-  async function onSubmit(data: ForgotPasswordForm) {
+  async function onSubmit(_data: ForgotPasswordForm) {
     setIsLoading(true);
-    setError(null);
-
-    const { error } = await supabase.auth.resetPasswordForEmail(data.email, {
-      redirectTo: `${window.location.origin}/reset-password`,
-    });
-
-    if (error) {
-      setError(error.message);
-      setIsLoading(false);
-      return;
-    }
-
+    // No backend — just show success
     setSuccess(true);
     setIsLoading(false);
   }
@@ -82,8 +68,6 @@ export default function ForgotPasswordPage() {
             />
             <FieldError>{errors.email?.message}</FieldError>
           </TextField>
-
-          {error && <p className="text-sm text-danger">{error}</p>}
 
           <Button type="submit" variant="primary" isDisabled={isLoading} className="w-full">
             {isLoading ? "Sending..." : "Send Reset Link"}
