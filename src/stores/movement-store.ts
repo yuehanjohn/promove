@@ -7,7 +7,6 @@ import type { Session, Measurement, MovementType } from "@/lib/movement-types";
 interface MovementState {
   sessions: Session[];
   unitSystem: "metric" | "imperial";
-  _hasHydrated: boolean;
 
   // Actions
   addSession: (session: Session) => void;
@@ -32,7 +31,6 @@ export const useMovementStore = create<MovementState>()(
     (set, get) => ({
       sessions: [],
       unitSystem: "metric",
-      _hasHydrated: false,
 
       addSession: (session) => set((state) => ({ sessions: [session, ...state.sessions] })),
 
@@ -101,13 +99,6 @@ export const useMovementStore = create<MovementState>()(
     }),
     {
       name: "promove-movement-data",
-      onRehydrateStorage: () => () => {
-        useMovementStore.setState({ _hasHydrated: true });
-      },
-      partialize: (state) => ({
-        sessions: state.sessions,
-        unitSystem: state.unitSystem,
-      }),
     }
   )
 );

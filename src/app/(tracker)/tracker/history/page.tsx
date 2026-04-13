@@ -8,17 +8,8 @@ import { calcStats } from "@/lib/jump-calculator";
 import Link from "next/link";
 
 export default function HistoryPage() {
-  const hasHydrated = useMovementStore((s) => s._hasHydrated);
   const sessions = useMovementStore((s) => s.sessions);
   const [filter, setFilter] = useState<MovementType | "all">("all");
-
-  if (!hasHydrated) {
-    return (
-      <div className="flex min-h-[calc(100vh-5rem)] items-center justify-center">
-        <p className="text-default-400">Loading...</p>
-      </div>
-    );
-  }
 
   const filtered = filter === "all" ? sessions : sessions.filter((s) => s.movementType === filter);
 
