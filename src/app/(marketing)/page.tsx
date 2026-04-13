@@ -1,89 +1,108 @@
-import { Button, Card } from "@heroui/react";
 import Link from "next/link";
 
 const features = [
   {
-    title: "Authentication",
-    description:
-      "Complete auth with email, OAuth, password reset, and session management via Supabase.",
+    icon: "⏱",
+    title: "Sound Countdown",
+    description: "Audio countdown gets you ready. 3... 2... 1... Jump!",
   },
   {
-    title: "Payments",
-    description:
-      "Stripe integration with subscriptions, checkout, customer portal, and webhook handling.",
+    icon: "📱",
+    title: "Phone Sensor",
+    description: "Use your phone's accelerometer to estimate jump height automatically.",
   },
   {
-    title: "Email",
-    description:
-      "Transactional emails with React Email templates and Resend for reliable delivery.",
+    icon: "📊",
+    title: "Track Progress",
+    description: "View your history, personal bests, and see your improvements over time.",
   },
   {
-    title: "Dashboard",
-    description: "Protected dashboard with sidebar navigation, settings, and profile management.",
+    icon: "🏐",
+    title: "Volleyball-Specific",
+    description: "Track vertical jumps, approach jumps, block jumps, broad jumps, and more.",
   },
   {
-    title: "Security",
-    description: "CSP headers, RLS policies, Zod validation, CSRF protection, and rate limiting.",
+    icon: "📵",
+    title: "Fully Offline",
+    description: "All data stored locally on your device. No account needed.",
   },
   {
-    title: "Developer Experience",
-    description: "TypeScript strict mode, ESLint, Prettier, Husky hooks, and path aliases.",
+    icon: "⚡",
+    title: "Quick Entry",
+    description: "Record jumps manually or with sensors. Multi-jump sessions made easy.",
   },
 ];
 
-export default function HomePage() {
+export default function LandingPage() {
   return (
-    <>
+    <div className="flex flex-col">
       {/* Hero */}
-      <section className="flex flex-col items-center justify-center gap-6 px-6 py-24 text-center">
-        <h1 className="max-w-3xl text-5xl font-bold leading-tight tracking-tight sm:text-6xl">
-          Ship your SaaS <span className="text-primary">in days, not months</span>
-        </h1>
-        <p className="max-w-xl text-lg text-default-500">
-          A production-ready boilerplate with authentication, payments, email, and everything you
-          need to launch your next SaaS product.
-        </p>
-        <div className="flex gap-4">
-          <Link href="/signup">
-            <Button variant="primary" size="lg">
-              Get Started
-            </Button>
-          </Link>
-          <Link href="/pricing">
-            <Button variant="outline" size="lg">
-              View Pricing
-            </Button>
+      <section className="relative overflow-hidden px-4 py-20 text-center sm:py-32">
+        <div className="mx-auto max-w-2xl">
+          <p className="mb-4 text-6xl">🏐</p>
+          <h1 className="mb-4 text-4xl font-extrabold tracking-tight sm:text-5xl">
+            Track Your{" "}
+            <span className="bg-gradient-to-r from-blue-600 to-violet-600 bg-clip-text text-transparent">
+              Explosive Power
+            </span>
+          </h1>
+          <p className="mx-auto mb-8 max-w-md text-lg text-default-500">
+            Record, measure, and analyze your volleyball jumps. See your vertical leap improve over
+            time.
+          </p>
+          <Link
+            href="/tracker"
+            className="inline-flex items-center gap-2 rounded-2xl bg-primary px-8 py-4 text-lg font-bold text-primary-foreground shadow-lg transition-transform hover:scale-105 active:scale-100"
+          >
+            Start Tracking
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+            >
+              <path d="M5 12h14M12 5l7 7-7 7" />
+            </svg>
           </Link>
         </div>
       </section>
 
       {/* Features */}
-      <section className="mx-auto max-w-6xl px-6 py-20">
-        <h2 className="mb-12 text-center text-3xl font-bold">Everything you need</h2>
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {features.map((feature) => (
-            <Card key={feature.title}>
-              <Card.Content className="gap-2 p-6">
-                <h3 className="text-lg font-semibold">{feature.title}</h3>
-                <p className="text-default-500">{feature.description}</p>
-              </Card.Content>
-            </Card>
-          ))}
+      <section className="px-4 pb-20">
+        <div className="mx-auto max-w-4xl">
+          <h2 className="mb-8 text-center text-2xl font-bold">Everything you need</h2>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {features.map((feature) => (
+              <div
+                key={feature.title}
+                className="rounded-2xl border border-default-200 bg-default-50 p-5"
+              >
+                <span className="mb-2 block text-3xl">{feature.icon}</span>
+                <h3 className="mb-1 font-semibold">{feature.title}</h3>
+                <p className="text-sm text-default-500">{feature.description}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
       {/* CTA */}
-      <section className="flex flex-col items-center gap-6 bg-default-100 px-6 py-20 text-center">
-        <h2 className="text-3xl font-bold">Ready to get started?</h2>
-        <p className="max-w-lg text-default-500">
-          Join thousands of developers who ship faster with our SaaS boilerplate.
-        </p>
-        <Link href="/signup">
-          <Button variant="primary" size="lg">
-            Start Building Today
-          </Button>
-        </Link>
+      <section className="px-4 pb-20 text-center">
+        <div className="mx-auto max-w-md rounded-2xl bg-gradient-to-br from-blue-600 to-violet-600 p-8 text-white">
+          <h2 className="mb-2 text-2xl font-bold">Ready to jump higher?</h2>
+          <p className="mb-6 text-white/80">
+            No sign-up required. Start recording your first session now.
+          </p>
+          <Link
+            href="/tracker"
+            className="inline-block rounded-xl bg-white px-6 py-3 font-bold text-blue-600 transition-transform hover:scale-105 active:scale-100"
+          >
+            Open ProMove
+          </Link>
+        </div>
       </section>
-    </>
+    </div>
   );
 }
