@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { Suspense, useState, useCallback, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useMovementStore, generateId } from "@/stores/movement-store";
 import { MOVEMENT_TYPES } from "@/lib/movement-types";
@@ -12,6 +12,20 @@ import type { JumpMetrics } from "@/lib/movement-types";
 type RecordingPhase = "setup" | "countdown" | "recording" | "result" | "session-summary";
 
 export default function RecordPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-[calc(100vh-5rem)] items-center justify-center">
+          <p className="text-default-400">Loading...</p>
+        </div>
+      }
+    >
+      <RecordPageContent />
+    </Suspense>
+  );
+}
+
+function RecordPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const addSession = useMovementStore((s) => s.addSession);
@@ -330,19 +344,27 @@ export default function RecordPage() {
                   <div className="mt-4 grid grid-cols-2 gap-2 text-left">
                     <div className="rounded-lg bg-default-100 p-2">
                       <p className="text-[10px] text-default-400">Flight Time</p>
-                      <p className="text-sm font-bold">{Math.round(currentResult.metrics.flightTimeMs)}ms</p>
+                      <p className="text-sm font-bold">
+                        {Math.round(currentResult.metrics.flightTimeMs)}ms
+                      </p>
                     </div>
                     <div className="rounded-lg bg-default-100 p-2">
                       <p className="text-[10px] text-default-400">Takeoff Velocity</p>
-                      <p className="text-sm font-bold">{currentResult.metrics.takeoffVelocity} m/s</p>
+                      <p className="text-sm font-bold">
+                        {currentResult.metrics.takeoffVelocity} m/s
+                      </p>
                     </div>
                     <div className="rounded-lg bg-default-100 p-2">
                       <p className="text-[10px] text-default-400">Peak G-Force</p>
-                      <p className="text-sm font-bold">{currentResult.metrics.peakAcceleration} m/s²</p>
+                      <p className="text-sm font-bold">
+                        {currentResult.metrics.peakAcceleration} m/s²
+                      </p>
                     </div>
                     <div className="rounded-lg bg-default-100 p-2">
                       <p className="text-[10px] text-default-400">Direction</p>
-                      <p className="text-sm font-bold capitalize">{currentResult.metrics.jumpDirection}</p>
+                      <p className="text-sm font-bold capitalize">
+                        {currentResult.metrics.jumpDirection}
+                      </p>
                     </div>
                   </div>
                 )}
