@@ -18,10 +18,19 @@ export default function SessionDetailPage() {
   const deleteMeasurement = useMovementStore((s) => s.deleteMeasurement);
   const updateSessionNotes = useMovementStore((s) => s.updateSessionNotes);
 
+  const hasHydrated = useMovementStore((s) => s._hasHydrated);
   const session = getSession(params.id as string);
   const [notes, setNotes] = useState(session?.notes ?? "");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [expandedJump, setExpandedJump] = useState<string | null>(null);
+
+  if (!hasHydrated) {
+    return (
+      <div className="flex min-h-[calc(100vh-5rem)] items-center justify-center">
+        <p className="text-default-400">Loading...</p>
+      </div>
+    );
+  }
 
   if (!session) {
     return (
@@ -43,7 +52,6 @@ export default function SessionDetailPage() {
   const stats = calcStats(values);
   const date = new Date(session.createdAt);
   const hasMetrics = session.measurements.some((m) => m.metrics);
-  const hasSensorData = session.measurements.some((m) => m.sensorData && m.sensorData.length > 0);
 
   // Compute aggregate metrics
   const metricsJumps = session.measurements.filter((m) => m.metrics);
@@ -58,8 +66,7 @@ export default function SessionDetailPage() {
   const avgFlight =
     metricsJumps.length > 0
       ? Math.round(
-          metricsJumps.reduce((a, m) => a + (m.metrics?.flightTimeMs ?? 0), 0) /
-            metricsJumps.length
+          metricsJumps.reduce((a, m) => a + (m.metrics?.flightTimeMs ?? 0), 0) / metricsJumps.length
         )
       : null;
 

@@ -8,10 +8,19 @@ import Link from "next/link";
 import { ProgressChart } from "@/components/tracker/charts/ProgressChart";
 
 export default function TrackerDashboard() {
+  const hasHydrated = useMovementStore((s) => s._hasHydrated);
   const sessions = useMovementStore((s) => s.sessions);
   const getTotalJumps = useMovementStore((s) => s.getTotalJumps);
   const getAllPersonalBests = useMovementStore((s) => s.getAllPersonalBests);
   const getRecentSessions = useMovementStore((s) => s.getRecentSessions);
+
+  if (!hasHydrated) {
+    return (
+      <div className="flex min-h-[calc(100vh-5rem)] items-center justify-center">
+        <p className="text-default-400">Loading...</p>
+      </div>
+    );
+  }
 
   const totalJumps = getTotalJumps();
   const personalBests = getAllPersonalBests();
@@ -23,27 +32,18 @@ export default function TrackerDashboard() {
   const overallStats = calcStats(allValues);
 
   // Compute velocity and flight metrics across all sessions
-  const allMetricMeasurements = sessions.flatMap((s) =>
-    s.measurements.filter((m) => m.metrics)
-  );
+  const allMetricMeasurements = sessions.flatMap((s) => s.measurements.filter((m) => m.metrics));
   const avgVelocity =
     allMetricMeasurements.length > 0
       ? Math.round(
-          (allMetricMeasurements.reduce(
-            (a, m) => a + (m.metrics?.takeoffVelocity ?? 0),
-            0
-          ) /
+          (allMetricMeasurements.reduce((a, m) => a + (m.metrics?.takeoffVelocity ?? 0), 0) /
             allMetricMeasurements.length) *
             100
         ) / 100
       : null;
   const bestFlight =
     allMetricMeasurements.length > 0
-      ? Math.round(
-          Math.max(
-            ...allMetricMeasurements.map((m) => m.metrics?.flightTimeMs ?? 0)
-          )
-        )
+      ? Math.round(Math.max(...allMetricMeasurements.map((m) => m.metrics?.flightTimeMs ?? 0)))
       : null;
 
   return (

@@ -11,8 +11,17 @@ import { VelocityComparisonChart } from "@/components/tracker/charts/VelocityCom
 import Link from "next/link";
 
 export default function AnalyticsPage() {
+  const hasHydrated = useMovementStore((s) => s._hasHydrated);
   const sessions = useMovementStore((s) => s.sessions);
   const [filter, setFilter] = useState<MovementType | "all">("all");
+
+  if (!hasHydrated) {
+    return (
+      <div className="flex min-h-[calc(100vh-5rem)] items-center justify-center">
+        <p className="text-default-400">Loading...</p>
+      </div>
+    );
+  }
 
   const filtered: Session[] =
     filter === "all" ? sessions : sessions.filter((s) => s.movementType === filter);
@@ -33,8 +42,7 @@ export default function AnalyticsPage() {
   const avgFlight =
     metricsJumps.length > 0
       ? Math.round(
-          metricsJumps.reduce((a, m) => a + (m.metrics?.flightTimeMs ?? 0), 0) /
-            metricsJumps.length
+          metricsJumps.reduce((a, m) => a + (m.metrics?.flightTimeMs ?? 0), 0) / metricsJumps.length
         )
       : null;
   const avgExplosiveness =
@@ -75,9 +83,7 @@ export default function AnalyticsPage() {
 
   // Session consistency - jumps per session
   const jumpsPerSession =
-    filtered.length > 0
-      ? Math.round((allMeasurements.length / filtered.length) * 10) / 10
-      : 0;
+    filtered.length > 0 ? Math.round((allMeasurements.length / filtered.length) * 10) / 10 : 0;
 
   if (sessions.length === 0) {
     return (
@@ -86,9 +92,7 @@ export default function AnalyticsPage() {
         <div className="mt-8 rounded-2xl border border-dashed border-default-300 p-8">
           <p className="text-4xl">&#x1f4ca;</p>
           <p className="mt-2 font-medium text-default-600">No data yet</p>
-          <p className="mt-1 text-sm text-default-400">
-            Record some jumps to see your analytics
-          </p>
+          <p className="mt-1 text-sm text-default-400">Record some jumps to see your analytics</p>
           <Link
             href="/tracker/record"
             className="mt-3 inline-block rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
@@ -308,16 +312,12 @@ function StatBox({
   return (
     <div
       className={`rounded-lg border p-2.5 text-center ${
-        highlight
-          ? "border-primary/30 bg-primary/5"
-          : "border-default-200 bg-default-50"
+        highlight ? "border-primary/30 bg-primary/5" : "border-default-200 bg-default-50"
       }`}
     >
       <p className={`text-sm font-bold ${highlight ? "text-primary" : ""}`}>
         {value}
-        {unit && (
-          <span className="ml-0.5 text-[10px] font-normal text-default-400">{unit}</span>
-        )}
+        {unit && <span className="ml-0.5 text-[10px] font-normal text-default-400">{unit}</span>}
       </p>
       <p className="text-[10px] text-default-400">{label}</p>
     </div>
